@@ -1,0 +1,145 @@
+---
+title: "Data Scientist for Business NanoDegree"
+author: "Bruno Italo Lima Benevides"
+date: "16 de julho de 2018"
+output: html_document
+---
+```{r}
+
+```
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 1 - INTRODUCTION
+
+The credit card industry is growing up, around, 15% in the last 10 years in Brazil. And the competition between companys in this sector has grownth as well. Hence, to create competitive advantage is necessary to develop new products to agregate revenue to the credit card's administrator. But only develop it is not the only way to be better than the others, because a new product may be developed, but no to be a profitable one. 
+
+Nowadays brazilian credit card's companies have a lot of financial services to increase its revenue. One of the most famous is a insurance against losses and theft. In this case the client pays everymonth a certain amount to be assured. That's only one way to try to rentabilaze the portfolio.
+
+So everytime credit card's companies are trying to sell its products in too many diferents ways (e.g by chatbots, e-mail marketing, sellers, SMS, etc.). And this study aims to investigate a sale's channel in particular, SMS, from a credit card's company that stop to sell a certain product because it was too expensive, not getting a postive margin, never been pais by itself. Then a machine learning model was built to maximize revenue of the firm, through data analysis, that gaves us too many insights about the consumer's behavior that used to be impactaded by an offer of this product by SMS.
+
+## 2- METHODOLOGY
+
+In a fintech DataBase (DB from now on) that administrate a given credit card, there are a lot of data about the client, features as age, income and many others social, demographic and behavioral data. 
+
+So we need a multivariate analysis to identify wich variables affects the probability of client accept or not an offer of the product question of this work. We find here a binary response, because the consumer say `Yes or No` to the offer.
+
+Such that the logistic regression modeling is widely used in cases like this (Susac, Sarlijia and Bensinc, 2004).
+
+# 2.1 - Data Analysis
+
+
+The dataset is composed by 1.000 clients who had an offer by SMS of a certain product in a credit card's company. It represents 3.33% of the database wich is really offered in a month. That sample had been chosen because the computational loss for a huge data.
+
+An enterprise in financial enviroment has a lot of client's features as: gender, limit of credit, age, a behavior score inside the company and too many others. But here there's only an aim, calculate the probability of a consumer accept an offer of a product in a campaing by SMS, where he just answears 'Yes or No' to the simple question: "Do you wanna accep this product in your account? Type Yer or No. For Free"
+
+So as we have a binary independet variable we need to see how some features work with it.
+
+
+```{r dataset}
+dataset<- read.csv('C:/Users/sony/Downloads/SMS.csv',sep = '\t')
+```
+
+Before to see some graph analysis we need to investigate the variables avaible by the company to build the Logistic Regression model.
+
+As we can see there's no outliers in the dataset to be deleted from analysis. It cab be corroborated by the company's politics, wich the clients must be greater than 18y (the minimal value below in the variable 'age'). He can only have 3 extra credit cards and the scores goes from 0 to 100. The others variables are binaries.
+
+```{r }
+summary(dataset)
+```
+
+Analysing by multiple histograms we can see the distributions of the independents variables. In the graphs bellow it's possible to verify that age has a normal distribution in our dataset. But limit and score are not one.
+
+```{r }
+library(ggplot2)
+
+p1 = ggplot(aes(x = dataset$Score), data = dataset) + geom_histogram()
+p2 = ggplot(aes(x = dataset$Age), data = dataset) + geom_histogram()
+p3 = ggplot(aes(x = dataset$CompanyAge), data = dataset) + geom_histogram()
+p4 = ggplot(aes(x = dataset$Limit), data = dataset) + geom_histogram()
+p5 = ggplot(aes(x = dataset$ExtraCredCard), data = dataset) + geom_histogram()
+
+library(gridExtra)
+
+grid.arrange(p1,p2,p3,p4,p5, ncol =2)
+```
+
+So analysing the relationship between each independent variable and the dependet one using a scatter plot, we can make some assumptions about what we can expect in our logistic model. 
+
+```{r }
+library(ggplot2)
+
+p1 = ggplot(dataset,aes(x = dataset$Score, y = dataset$Accept)) +
+  geom_point(shape = 1) +
+  geom_smooth(method = lm)
+
+p2 = ggplot(dataset,aes(x = dataset$Age, y = dataset$Accept)) +
+  geom_point(shape = 1) +
+  geom_smooth(method = lm)
+
+p3 = ggplot(dataset,aes(x = dataset$CompanyAge, y = dataset$Accept)) +
+  geom_point(shape = 1) +
+  geom_smooth(method = lm)
+
+p4 = ggplot(dataset,aes(x = dataset$Limit, y = dataset$Accept)) +
+  geom_point(shape = 1) +
+  geom_smooth(method = lm)
+
+p5 = ggplot(dataset,aes(x = dataset$Gender, y = dataset$Accept)) +
+  geom_point(shape = 1) +
+  geom_smooth(method = lm)
+
+p6 = ggplot(dataset,aes(x = dataset$ExtraCredCard, y = dataset$Accept)) +
+  geom_point(shape = 1) +
+  geom_smooth(method = lm)
+
+
+library(gridExtra)
+
+grid.arrange(p1,p2,p3,p4,p5, ncol =2)
+```
+
+As we can see in graphs above, there are a negative correlationship between the dependet variable and Score, Age and Limit. So we can assume that: hou much greater are these variables less will be the probability of people with these features to accept the financial product by SMS.
+
+
+# 2.2 - Building the model
+
+Now we gonna start to build the logistic regression model as a classifier to maximize the sales of a certain product in the credit card's company used in this work.
+
+The first step is to split the dataset into training and test set.
+
+```{r }
+library(caTools)
+set.seed(123)
+split = sample.split(dataset$Accept, SplitRatio = 0.75)
+training_set = subset(dataset,split ==TRUE)
+test_set = subset(dataset, split ==FALSE)
+
+```
+
+
+As we have some binaries independent variables and others are scalars, now we need to do the featuring scallling of the dataset.
+
+
+```{r }
+training_set[,1:2] = scale(training_set[,1:6])
+test_set[,1:2] = scale(test_set[,1:6])
+
+```
+
+Create the classifier is the last step about build a model. After do that we gonna need 
+to analyse the model's statistics to see if the company will or not use it in a sales action.
+
+```{r }
+classifier = glm(formula = dataset$Accept ~ dataset$Score + dataset$Gender +
+                   dataset$CompanyAge,
+                    family =  binomial,
+                    data = training_set)
+
+summary(classifier)
+```
+
+As we can see, Score, gender and CompanyAge are the variable wich can be used to predict the probability of certain client buy or nor a product by SMS.

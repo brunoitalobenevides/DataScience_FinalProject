@@ -1,3 +1,4 @@
-# DataScience_FinalProject
+Visão geral do projeto
 
-Ultimo projeto do Nanodegrre em DataScience
+
+Projeto final de NanoDegree em DataScience
