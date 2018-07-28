@@ -67,7 +67,7 @@ library(gridExtra)
 grid.arrange(p1,p2,p3,p4,p5, ncol =2)
 ```
 
-So analysing the relationship between each independent variable and the dependet one using a scatter plot, we can make some assumptions about what we can expect in our logistic model. 
+So analysing the relationship between each independent variable and the dependet one using a scatter plot, we can make some assumptions about what we can expect in our logistic model. Our 'Y Label' is the data$Accept variable wich has the value 1 if the client had acceptted the product and 0 otherwise.
 
 ```{r }
 library(ggplot2)
@@ -103,6 +103,30 @@ grid.arrange(p1,p2,p3,p4,p5, ncol =2)
 ```
 
 As we can see in graphs above, there are a negative correlationship between the dependet variable and Score, Age and Limit. So we can assume that: hou much greater are these variables less will be the probability of people with these features to accept the financial product by SMS.
+
+# 2.1.1 - Multivariate Analysis
+
+We can see in graphs below the relationship between each independent variable. It shows to us that, the varible Score, for example, is higly correlated with Age, Limite and ExtraCredCard.It's possible to  verify, as well, that only Score, Age and Limite have a normal distribution. 
+
+```{r }
+library(GGally)
+library(ggplot2)
+g = ggpairs(dataset[,-7]) + theme_bw()
+
+# Loop through each plot changing relevant scales
+for(i in 1:g$nrow) {
+  for(j in 1:g$ncol){
+    g[i,j] <- g[i,j] + 
+        scale_fill_manual(values=c("#00AFBB", "#E7B800", "#FC4E07")) +
+        scale_color_manual(values=c("#00AFBB", "#E7B800", "#FC4E07"))  
+  }
+}
+
+g
+
+```
+
+
 
 
 # 2.2 - Building the model
@@ -143,3 +167,37 @@ summary(classifier)
 ```
 
 As we can see, Score, gender and CompanyAge are the variable wich can be used to predict the probability of certain client buy or nor a product by SMS.
+
+# 3 - Final plots
+
+The graph below shows that the residual distribution has not a normal one. This could be a problem for the model if was used a small number of observations, but with 1.000 there is no problem with this feature of the model.
+
+
+It's possible to see, as well, the residual x fitted values. The graph shows us that the model is predicting very well more than 50% of the sample.
+
+```{r }
+plot(resid(classifier)
+)
+```
+
+
+```{r }
+plot(classifier)
+```
+
+
+
+# 4 - Reflection
+
+
+Such that the data analysis was possible to build a very good model that predicts the probability of a client with some features buy or not a product ofeered by SMS. After
+the modelling, the company has gained a cost reductions of 243% per month an increase with this product around 360% per month. That explains the importance to use machine learning, data analysis and data science in a company.
+
+
+The most difficult part of this project was to organize the dataset, because all of the past SMS campaing were not standarized in a folder. It was a messy in many different folders.
+
+For the next projects is possible to verify the model perfomance in others sales channel, as call center, for exemple. Where the operator, or a bot, could offer the right produc to the right client instantly. 
+
+
+
+
